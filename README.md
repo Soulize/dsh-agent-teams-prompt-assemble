@@ -62,14 +62,11 @@ This now follows the same persistence model as `dsh-prompt-persona`: the checkbo
     disableLegacySubagentTools: true
 ```
 
-The Host half reads that live Config value and updates both places where those ids can exist:
+The Host half reads that live Config value and updates the model-facing Agent preset standing `PresetTree` rows returned by `livePresetMounts()`.
 
-- the profile/root Loader rows;
-- every live Agent preset standing `PresetTree` returned by `livePresetMounts()`.
+The shipped `standard`, `ptc`, `cordis`, and related presets each contain a nested `delegation` group with their own `tool-subagent-*` rows. Those standing preset trees are the authoritative tool plane for Web sessions, so the plugin no longer mutates redundant profile/root rows.
 
-This second plane is required in Web profiles. The shipped `standard`, `ptc`, `cordis`, and related presets each contain a nested `delegation` group with their own `tool-subagent-*` rows. Disabling only the top-level profile rows does **not** remove those model-facing preset tools.
-
-The plugin records each target entry's inherited `disabled` state before changing it. When the checkbox is turned off, or the plugin is disposed, those entries are restored to that prior state rather than forcing `disabled: false` over another bundle/preset decision. New preset generations are re-scanned on tool-registration changes and profile reloads.
+The plugin keeps each touched entry's inherited `disabled` state in a `WeakMap`. Turning the checkbox off, disabling the plugin, or hot-replacing it restores the currently live entries to that prior state without retaining retired preset generations. Tool-change bursts are coalesced into one running sync plus at most one follow-up scan.
 
 
 ## Custom replacement via YAML
@@ -113,11 +110,6 @@ If the section no longer has a recognizable opener, it logs one warning and leav
     disableLegacySubagentTools: true
 ```
 
-Host 半身读取该值后，会同时处理两层同名 entry：
+Host 半身只处理 Web Agent preset 的 standing `PresetTree`。这才是会话真正使用的工具层：`standard`、`ptc`、`cordis` 等 preset 都在自己的嵌套 `delegation` group 里声明了四个 `tool-subagent-*`。不再扫描和修改冗余的 profile/root row。
 
-- profile/root Loader 里的四个 `tool-subagent-*`；
-- Web Agent preset 的 standing `PresetTree` 里的四个 `tool-subagent-*`。
-
-后者才是 Web 会话真正使用的那一层：`standard`、`ptc`、`cordis` 等 preset 都在自己的嵌套 `delegation` group 里重新声明了这些工具。只禁用 profile 顶层 row 并不会让当前 preset 的模型工具消失。
-
-取消勾选或插件卸载时，会恢复每个 entry 在插件介入前的继承状态，不强行写成 `disabled: false`。preset 新 revision / HMR 后也会重新扫描。
+每个被修改 entry 的原始 `disabled` 状态放在 `WeakMap` 里；取消勾选、插件卸载或热替换时，只恢复当前仍存活的 preset entry，因此 retired generation 不会被强引用保留。连续 `tools/change` 事件也会合并，避免一次切换排出多轮无意义扫描。
