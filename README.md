@@ -42,6 +42,39 @@ Saving writes the `replacement` field into the current profile configuration and
 
 The UI changes only the first paragraph of the official `team:policy`; the remaining official Agent Teams coordination rules stay intact.
 
+### Disable the legacy Subagent tools
+
+The same Configure page now has a **禁用普通 Subagent 工具** checkbox.
+
+When enabled, the browser calls DSH's official `PluginManager.setPluginEnabled(..., false)` API for these four rows:
+
+```text
+tool-subagent-control
+tool-subagent-list-agents
+tool-subagent
+tool-subagent-fork
+```
+
+The PluginManager persists the result as ordinary top-level overrides in the current profile's `cordis.patch.yml`. This is the same Cordis-patch pattern used by DSH's official experimental Agent Teams profile:
+
+```yaml
+- id: tool-subagent-control
+  disabled: true
+
+- id: tool-subagent-list-agents
+  disabled: true
+
+- id: tool-subagent
+  disabled: true
+
+- id: tool-subagent-fork
+  disabled: true
+```
+
+Unchecking the option writes the corresponding rows back as `disabled: false`.
+
+The option reads the live row state from PluginManager instead of storing a second copy in this plugin's config. If the four rows are in a mixed state, the page reports that and the next save normalizes all four to the selected state. Changes are applied through profile HMR when supported; otherwise DSH may report that a restart is required.
+
 ## Custom replacement via YAML
 
 You can still edit the same field manually in `$DSH_HOME/profiles/<profile>/cordis.patch.yml`.
@@ -72,3 +105,18 @@ If the section no longer has a recognizable opener, it logs one warning and leav
 在多行文本框里直接填写你希望替换进去的 Agent Teams 第一段提示词，然后点 **保存**。保存后下一次 system prompt 组装立即生效，不需要重启 DSH。
 
 **恢复默认** 只把编辑框恢复为本插件默认文案，仍需要点击 **保存** 才会写入配置。
+
+另外配置页新增 **禁用普通 Subagent 工具**。勾选并保存后，会通过 DSH 官方 PluginManager 往当前 profile 的 `cordis.patch.yml` 写入四条 `disabled: true`：
+
+```yaml
+- id: tool-subagent-control
+  disabled: true
+- id: tool-subagent-list-agents
+  disabled: true
+- id: tool-subagent
+  disabled: true
+- id: tool-subagent-fork
+  disabled: true
+```
+
+取消勾选并保存则统一写回 `disabled: false`。这个开关直接读取四个 Cordis 行的实时状态，不额外维护一份容易漂移的布尔配置。
