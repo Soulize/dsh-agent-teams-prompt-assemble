@@ -1,7 +1,7 @@
 {
   "name": "dsh-agent-team-prompt-override",
-  "version": "0.3.0",
-  "description": "Override the DeepSeek Harness Agent Teams creation policy and optionally disable the legacy Subagent tool rows through profile Cordis patches.",
+  "version": "0.3.1",
+  "description": "Override the DeepSeek Harness Agent Teams creation policy and optionally disable legacy Subagent Loader rows via Settings-backed Cordis config.",
   "type": "module",
   "main": "lib/index.js",
   "exports": {
