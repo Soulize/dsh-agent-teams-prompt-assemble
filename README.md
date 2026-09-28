@@ -66,7 +66,7 @@ The Host half reads that live Config value and updates the model-facing Agent pr
 
 The shipped `standard`, `ptc`, `cordis`, and related presets each contain a nested `delegation` group with their own `tool-subagent-*` rows. Those standing preset trees are the authoritative tool plane for Web sessions, so the plugin no longer mutates redundant profile/root rows.
 
-The plugin keeps each touched entry's inherited `disabled` state in a `WeakMap`. Turning the checkbox off, disabling the plugin, or hot-replacing it restores the currently live entries to that prior state without retaining retired preset generations. Tool-change bursts are coalesced into one running sync plus at most one follow-up scan.
+The plugin keeps each touched entry's inherited `disabled` state in a `WeakMap`. Turning the checkbox off, disabling the plugin, or hot-replacing it restores the currently live entries to that prior state without retaining retired preset generations. Preset rescans use `app-boot/config-reload`, which DSH emits after configuration lifecycle settlement, so newly replaced preset generations are visible before the scan runs.
 
 
 ## Custom replacement via YAML
@@ -112,4 +112,4 @@ If the section no longer has a recognizable opener, it logs one warning and leav
 
 Host 半身只处理 Web Agent preset 的 standing `PresetTree`。这才是会话真正使用的工具层：`standard`、`ptc`、`cordis` 等 preset 都在自己的嵌套 `delegation` group 里声明了四个 `tool-subagent-*`。不再扫描和修改冗余的 profile/root row。
 
-每个被修改 entry 的原始 `disabled` 状态放在 `WeakMap` 里；取消勾选、插件卸载或热替换时，只恢复当前仍存活的 preset entry，因此 retired generation 不会被强引用保留。连续 `tools/change` 事件也会合并，避免一次切换排出多轮无意义扫描。
+每个被修改 entry 的原始 `disabled` 状态放在 `WeakMap` 里；取消勾选、插件卸载或热替换时，只恢复当前仍存活的 preset entry，因此 retired generation 不会被强引用保留。preset 重载后通过 `app-boot/config-reload` 重新扫描；这个事件在 DSH 完成配置生命周期结算后才发出，因此新 generation 已经进入 `livePresetMounts()`。
