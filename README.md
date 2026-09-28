@@ -44,9 +44,7 @@ The UI changes only the first paragraph of the official `team:policy`; the remai
 
 ### Disable the legacy Subagent tools
 
-The same Configure page now has a **禁用普通 Subagent 工具** checkbox.
-
-When enabled, the browser calls DSH's official `PluginManager.setPluginEnabled(..., false)` API for these four rows:
+The same Configure page has a **禁用普通 Subagent 工具** checkbox for:
 
 ```text
 tool-subagent-control
@@ -55,25 +53,19 @@ tool-subagent
 tool-subagent-fork
 ```
 
-The PluginManager persists the result as ordinary top-level overrides in the current profile's `cordis.patch.yml`. This is the same Cordis-patch pattern used by DSH's official experimental Agent Teams profile:
+This now follows the same persistence model as `dsh-prompt-persona`: the checkbox is an ordinary volatile Config field owned by this plugin. Saving it goes through the Plugins config form / Settings service, which persists the value into the current profile's `cordis.patch.yml`:
 
 ```yaml
-- id: tool-subagent-control
-  disabled: true
-
-- id: tool-subagent-list-agents
-  disabled: true
-
-- id: tool-subagent
-  disabled: true
-
-- id: tool-subagent-fork
-  disabled: true
+- id: agent-team-prompt-override
+  name: dsh-agent-team-prompt-override
+  config:
+    disableLegacySubagentTools: true
 ```
 
-Unchecking the option writes the corresponding rows back as `disabled: false`.
+The Host half reads that live Config value and updates the four existing Cordis Loader entries with `entry.update({ disabled: true })`. On restart the persisted Config is read again and the same state is reapplied. This avoids relying on the browser-side PluginManager to patch four separate inherited rows.
 
-The option reads the live row state from PluginManager instead of storing a second copy in this plugin's config. If the four rows are in a mixed state, the page reports that and the next save normalizes all four to the selected state. Changes are applied through profile HMR when supported; otherwise DSH may report that a restart is required.
+When the checkbox is turned off, the Host restores each row to the state it inherited before this plugin touched it, rather than forcing `disabled: false` over another bundle/profile decision.
+
 
 ## Custom replacement via YAML
 
@@ -87,6 +79,7 @@ Example:
   config:
     replacement: >-
       Agent Teams is available in this session. Use teammates proactively whenever independent parallel work would improve the result.
+    disableLegacySubagentTools: true
 ```
 
 ## Compatibility behavior
@@ -106,17 +99,13 @@ If the section no longer has a recognizable opener, it logs one warning and leav
 
 **恢复默认** 只把编辑框恢复为本插件默认文案，仍需要点击 **保存** 才会写入配置。
 
-另外配置页新增 **禁用普通 Subagent 工具**。勾选并保存后，会通过 DSH 官方 PluginManager 往当前 profile 的 `cordis.patch.yml` 写入四条 `disabled: true`：
+另外配置页新增 **禁用普通 Subagent 工具**。这个选项现在和 `dsh-prompt-persona` 一样，作为本插件自己的 volatile Config 保存到当前 profile 的 `cordis.patch.yml`：
 
 ```yaml
-- id: tool-subagent-control
-  disabled: true
-- id: tool-subagent-list-agents
-  disabled: true
-- id: tool-subagent
-  disabled: true
-- id: tool-subagent-fork
-  disabled: true
+- id: agent-team-prompt-override
+  name: dsh-agent-team-prompt-override
+  config:
+    disableLegacySubagentTools: true
 ```
 
-取消勾选并保存则统一写回 `disabled: false`。这个开关直接读取四个 Cordis 行的实时状态，不额外维护一份容易漂移的布尔配置。
+Host 半身读取该值后，直接把 `tool-subagent-control`、`tool-subagent-list-agents`、`tool-subagent`、`tool-subagent-fork` 四个 Loader entry 更新为 `disabled: true`。取消勾选时恢复插件介入前的继承状态，不强行覆盖其它 bundle/profile 本来就设置的禁用状态。
