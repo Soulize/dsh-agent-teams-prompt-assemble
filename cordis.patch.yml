@@ -1,0 +1,5 @@
+# Overrides only the first paragraph of the official Agent Teams team:policy.
+# The rest of the official coordination/safety policy is preserved verbatim.
+- insert:
+    - id: agent-team-prompt-override
+      name: dsh-agent-team-prompt-override
