@@ -1,15 +1,17 @@
 {
   "name": "dsh-agent-team-prompt-override",
-  "version": "0.1.0",
-  "description": "Override the DeepSeek Harness Agent Teams policy gate so teammates may be created proactively when parallel work is useful.",
+  "version": "0.2.0",
+  "description": "Override the DeepSeek Harness Agent Teams creation policy with a live-editable prompt and Plugins-page configuration UI.",
   "type": "module",
   "main": "lib/index.js",
   "exports": {
     ".": "./lib/index.js",
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./client": "./lib/client.js"
   },
   "files": [
     "lib/index.js",
+    "lib/client.js",
     "cordis.patch.yml",
     "README.md"
   ],
@@ -34,13 +36,29 @@
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "^4.0.1",
-    "@deepseek-ai/schemastery": "^3.18.4"
+    "@deepseek-ai/schemastery": "^3.18.4",
+    "@deepseek-ai/dsh-client-ui-plugin-manager": ">=0.1.7-rc.1",
+    "@deepseek-ai/dsh-client-ui-renderer": ">=0.1.7-rc.1",
+    "@deepseek-ai/dsh-settings": ">=0.1.7-rc.1",
+    "react": "^18.2.0"
   },
   "peerDependenciesMeta": {
     "@deepseek-ai/cordis": {
       "optional": true
     },
     "@deepseek-ai/schemastery": {
+      "optional": true
+    },
+    "@deepseek-ai/dsh-client-ui-plugin-manager": {
+      "optional": true
+    },
+    "@deepseek-ai/dsh-client-ui-renderer": {
+      "optional": true
+    },
+    "@deepseek-ai/dsh-settings": {
+      "optional": true
+    },
+    "react": {
       "optional": true
     }
   },
@@ -50,6 +68,13 @@
     },
     "engines": {
       "dsh": ">=0.1.7-rc.1"
+    },
+    "client": {
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-plugin-manager",
+        "@deepseek-ai/dsh-client-ui-renderer"
+      ],
+      "platform": "web"
     }
   }
 }
