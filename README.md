@@ -62,9 +62,14 @@ This now follows the same persistence model as `dsh-prompt-persona`: the checkbo
     disableLegacySubagentTools: true
 ```
 
-The Host half reads that live Config value and updates the four existing Cordis Loader entries with `entry.update({ disabled: true })`. On restart the persisted Config is read again and the same state is reapplied. This avoids relying on the browser-side PluginManager to patch four separate inherited rows.
+The Host half reads that live Config value and updates both places where those ids can exist:
 
-When the checkbox is turned off, the Host restores each row to the state it inherited before this plugin touched it, rather than forcing `disabled: false` over another bundle/profile decision.
+- the profile/root Loader rows;
+- every live Agent preset standing `PresetTree` returned by `livePresetMounts()`.
+
+This second plane is required in Web profiles. The shipped `standard`, `ptc`, `cordis`, and related presets each contain a nested `delegation` group with their own `tool-subagent-*` rows. Disabling only the top-level profile rows does **not** remove those model-facing preset tools.
+
+The plugin records each target entry's inherited `disabled` state before changing it. When the checkbox is turned off, or the plugin is disposed, those entries are restored to that prior state rather than forcing `disabled: false` over another bundle/preset decision. New preset generations are re-scanned on tool-registration changes and profile reloads.
 
 
 ## Custom replacement via YAML
@@ -108,4 +113,11 @@ If the section no longer has a recognizable opener, it logs one warning and leav
     disableLegacySubagentTools: true
 ```
 
-Host 半身读取该值后，直接把 `tool-subagent-control`、`tool-subagent-list-agents`、`tool-subagent`、`tool-subagent-fork` 四个 Loader entry 更新为 `disabled: true`。取消勾选时恢复插件介入前的继承状态，不强行覆盖其它 bundle/profile 本来就设置的禁用状态。
+Host 半身读取该值后，会同时处理两层同名 entry：
+
+- profile/root Loader 里的四个 `tool-subagent-*`；
+- Web Agent preset 的 standing `PresetTree` 里的四个 `tool-subagent-*`。
+
+后者才是 Web 会话真正使用的那一层：`standard`、`ptc`、`cordis` 等 preset 都在自己的嵌套 `delegation` group 里重新声明了这些工具。只禁用 profile 顶层 row 并不会让当前 preset 的模型工具消失。
+
+取消勾选或插件卸载时，会恢复每个 entry 在插件介入前的继承状态，不强行写成 `disabled: false`。preset 新 revision / HMR 后也会重新扫描。
