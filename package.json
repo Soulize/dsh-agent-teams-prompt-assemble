@@ -1,7 +1,7 @@
 {
   "name": "dsh-agent-team-prompt-override",
-  "version": "0.3.2",
-  "description": "Override the DeepSeek Harness Agent Teams creation policy and optionally disable legacy Subagent rows in live Agent preset trees.",
+  "version": "0.3.3",
+  "description": "Override the DeepSeek Harness Agent Teams creation policy and optionally disable legacy Subagent rows in standing Agent preset trees.",
   "type": "module",
   "main": "lib/index.js",
   "exports": {
@@ -61,9 +61,6 @@
     },
     "react": {
       "optional": true
-    },
-    "@deepseek-ai/dsh-agent-preset-registry": {
-      "optional": false
     }
   },
   "dsh": {
